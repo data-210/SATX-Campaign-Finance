@@ -73,6 +73,14 @@ app.layout = dbc.Container(
             ],
             style={'marginTop': '20px'}
         ),
+
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Graph(id='cand-committee-graph')
+                )
+            ]
+        ),
         dbc.Row(
             [
                 dbc.Col(
@@ -86,14 +94,6 @@ app.layout = dbc.Container(
                 ),
             ],
             style={'marginTop': '20px'}
-        ),
-
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Graph(id='cand-committee-graph')
-                )
-            ]
         ),
         
         dbc.Row(
