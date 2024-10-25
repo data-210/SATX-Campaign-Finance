@@ -15,7 +15,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [html.H2("COSA Campaign Finance Data",
+                    [html.H2("COSA Campaign Finance Data Dashboard",
                              style={'text-align': 'center'})]
                 )
             ]
@@ -60,6 +60,16 @@ app.layout = dbc.Container(
                 ),
             ]
         ),
+        
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.H4("Contributions to Candidates & Committees",
+                            style={'text-align': 'center'}),
+                            width=12
+                )
+            ]
+        ),
         dbc.Row(
             [
                 dbc.Col(
@@ -73,7 +83,6 @@ app.layout = dbc.Container(
             ],
             style={'marginTop': '20px'}
         ),
-
         dbc.Row(
             [
                 dbc.Col(
@@ -94,6 +103,14 @@ app.layout = dbc.Container(
                 ),
             ],
             style={'marginTop': '20px'}
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.H4("Contributions to Candidates Over Time", style={'text-align': 'center'}),
+                    width=12
+                )
+            ]
         ),
         
         dbc.Row(
@@ -138,7 +155,7 @@ def update_graph(selected_year):
             'type': 'bar'
         }],
         'layout': {
-            'title': f'Contributions for Candidate/Committee for {selected_year or "All Years"}',
+            'title': f'Contributions to Candidate/Committee for {selected_year or "All Years"}',
             'xaxis': {'title': 'Candidate/Committee'},
             'yaxis': {'title': 'Total Amount ($)'}
         }
@@ -167,7 +184,7 @@ def update_timeseries(selected_year, selected_candidates):
             'type': 'line'
         }],
         'layout': {
-            'title': 'Candidate Contributions Over Time',
+            'title': 'Contributions to Candidates Over Time',
             'xaxis': {'title': 'Date'},
             'yaxis': {'title': 'Total Amount'}
         }
