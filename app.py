@@ -65,7 +65,9 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     html.H4("Contributions to Candidates & Committees",
-                            style={'text-align': 'center'}),
+                            style={'text-align': 'center',
+                                   'marginTop': '40px', 
+                                   'marginBottom': '15px'}),
                             width=12
                 )
             ]
@@ -93,6 +95,16 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
+                    html.H4("Contributions to Candidates Over Time", style={'text-align': 'center',
+                                                                            'marginTop': '40px',
+                                                                            'marginBottom': '15px'}),
+                    width=12
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
                     dcc.Dropdown(
                         options=[{'label': candidate, 'value': candidate} for candidate in df['Cand/Committee:'].unique()],
                         id='candidate-dropdown',
@@ -104,15 +116,6 @@ app.layout = dbc.Container(
             ],
             style={'marginTop': '20px'}
         ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    html.H4("Contributions to Candidates Over Time", style={'text-align': 'center'}),
-                    width=12
-                )
-            ]
-        ),
-        
         dbc.Row(
             [
                 dbc.Col(
@@ -157,10 +160,11 @@ def update_graph(selected_year):
         'layout': {
             'title': f'Contributions to Candidate/Committee for {selected_year or "All Years"}',
             'xaxis': {'title': 'Candidate/Committee'},
-            'yaxis': {'title': 'Total Amount ($)'}
+            'yaxis': {'title': 'Total Contributions ($)'}
         }
     }
     return fig    
+
 # Callback for timeseries chart
 @app.callback(
     Output('timeseries-graph', 'figure'),
@@ -174,19 +178,21 @@ def update_timeseries(selected_year, selected_candidates):
     if selected_candidates:
         filtered_df = filtered_df[filtered_df['Cand/Committee:'].isin(selected_candidates)]
     
-    # Aggregate data by TransDate:
-    timeseries_df = filtered_df.groupby('TransDate:')['Amount:'].sum().reset_index()
+    # Aggregate data by Cand/Committee: and TransDate:
+    timeseries_df = filtered_df.groupby(['TransDate:', 'Cand/Committee:'])['Amount:'].sum().reset_index()
 
     fig = {
         'data': [{
-            'x': timeseries_df['TransDate:'],
-            'y': timeseries_df['Amount:'],
-            'type': 'line'
-        }],
+            'x': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['TransDate:'],
+            'y': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['Amount:'],
+            'type': 'line',
+            'name': candidate
+        } for candidate in timeseries_df['Cand/Committee:'].unique()],
         'layout': {
             'title': 'Contributions to Candidates Over Time',
             'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Total Amount'}
+            'yaxis': {'title': 'Total Contributions ($)'},
+            'showlegend': True
         }
     }
     return fig
