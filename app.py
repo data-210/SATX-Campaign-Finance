@@ -181,17 +181,23 @@ def update_timeseries(selected_year, selected_candidates):
     # Aggregate data by Cand/Committee: and TransDate:
     timeseries_df = filtered_df.groupby(['TransDate:', 'Cand/Committee:'])['Amount:'].sum().reset_index()
 
+    # Sort by date to ensure cumsums are in order
+    timeseries_df = timeseries_df.sort_values(by=['Cand/Committee:', 'TransDate:'])
+
+    # Calculate cumsum for each candidate
+    timeseries_df['Cumulative Contributions'] = timeseries_df.groupby('Cand/Committee:')['Amount:'].cumsum()
+
     fig = {
         'data': [{
             'x': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['TransDate:'],
-            'y': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['Amount:'],
+            'y': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['Cumulative Contributions'],
             'type': 'line',
             'name': candidate
         } for candidate in timeseries_df['Cand/Committee:'].unique()],
         'layout': {
-            'title': 'Contributions to Candidates Over Time',
+            'title': 'Cumulative Contributions to Candidates Over Time',
             'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Total Contributions ($)'},
+            'yaxis': {'title': 'Cumulative Contributions ($)'},
             'showlegend': True
         }
     }
