@@ -19,52 +19,11 @@ app.layout = dbc.Container(
                              style={'text-align': 'center'})]
                 )
             ]
-        ),
-        dcc.Download(id='download'),
+        ),        
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        dash_table.DataTable(
-                            id='datatable-interactivity',
-                            data=df.to_dict('records'),
-                            columns=[{'name': i, 'id': i} for i in df.columns],
-                            page_size=25,
-                            style_table={'overflowX': 'auto'},
-                            filter_action='native',
-                            sort_action='native',
-                            column_selectable='single',
-                            row_selectable='multi'
-                        ),
-                        html.Div(id='datatable-interactivity-container')
-                    ]
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Dropdown(
-                        options=[
-                            {'label': 'Excel file', 'value': 'excel'},
-                            {'label': 'CSV file', 'value': 'csv'},
-                        ],
-                        id='dropdown',
-                        placeholder='Choose download file type. Default is CSV.',
-                    ),
-                    width=6
-                ),
-                dbc.Col(
-                    dbc.Button('Download data', id='btn-csv'),
-                    width=6
-                ),
-            ]
-        ),
-        
-        dbc.Row(
-            [
-                dbc.Col(
-                    html.H4("Contributions to Candidates & Committees",
+                    html.H4("Total Contributions to Candidates & Committees",
                             style={'text-align': 'center',
                                    'marginTop': '40px', 
                                    'marginBottom': '15px'}),
@@ -111,11 +70,20 @@ app.layout = dbc.Container(
                         multi=True,
                         placeholder='Select Candidate(s)',
                     ),
-                    width=8
+                    width=6
                 ),
+                dbc.Col(
+                            dcc.Dropdown(
+                                options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
+                                id='year-dropdown-ts',
+                                placeholder='Select Election Year',
+                            ),
+                            width=6
+                        ),
             ],
-            style={'marginTop': '20px'}
+            style={'marginTop': '20px', 'marginBottom': '10px'}
         ),
+        
         dbc.Row(
             [
                 dbc.Col(
@@ -123,8 +91,70 @@ app.layout = dbc.Container(
                 )
             ]
         ),
-    ]
-)         
+        dbc.Container(
+            [
+                # Header
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.H4(
+                                "Download COSA Campaign Finance Data",
+                                style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '10px'}
+                            ),
+                            width=12
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dcc.Dropdown(
+                                options=[
+                                    {'label': 'Excel file', 'value': 'excel'},
+                                    {'label': 'CSV file', 'value': 'csv'},
+                                ],
+                                id='dropdown',
+                                placeholder='Choose download file type. Default is CSV',
+                            ),
+                            width=3
+                        ),
+                        dbc.Col(
+                            dbc.Button('Download data', id='btn-csv'),
+                            width=3
+                        ),
+                    ],
+                    style={'marginTop': '20px'}
+                ),
+                # Data table with extra margin at the bottom
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            dash_table.DataTable(
+                                id='datatable-interactivity',
+                                data=df.to_dict('records'),
+                                columns=[{'name': i, 'id': i} for i in df.columns],
+                                page_size=25,
+                                style_table={'overflowX': 'auto'},
+                                filter_action='native',
+                                sort_action='native',
+                                column_selectable='single',
+                                row_selectable='multi'
+                            ),
+                            width=12
+                        ),
+                        html.Div(id='datatable-interactivity-container')
+                    ],
+                    style={'marginTop': '20px', 'paddingBottom': '40px'}
+                ),
+            ],
+            style={'paddingBottom': '40px', 'marginBottom': '20px'}
+        ),
+        dcc.Download(id='download'),
+    ],
+    style={'paddingBottom': '40px'}
+)
+
+               
 # Callback for downloading data
 @app.callback(
     Output('download', 'data'),
@@ -168,7 +198,7 @@ def update_graph(selected_year):
 # Callback for timeseries chart
 @app.callback(
     Output('timeseries-graph', 'figure'),
-    [Input('year-dropdown', 'value'), Input('candidate-dropdown', 'value')]
+    [Input('year-dropdown-ts', 'value'), Input('candidate-dropdown', 'value')]
 )
 def update_timeseries(selected_year, selected_candidates):
     filtered_df = df[df['Contact Type:'] == 'Contributor']
