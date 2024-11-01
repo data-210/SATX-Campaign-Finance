@@ -3,7 +3,7 @@ import pandas as pd
 from collections import OrderedDict
 import dash_bootstrap_components as dbc
 
-df = pd.read_csv('data/campaign_finance20240928.csv')
+df = pd.read_csv('data/campaign_finance20241031.csv')
 
 # Convert TransDate: to date time
 df['TransDate:'] = pd.to_datetime(df['TransDate:'], errors='coerce')
