@@ -7,6 +7,9 @@ df = pd.read_csv('data/campaign_finance20241031.csv')
 
 # Convert TransDate: to date time
 df['TransDate:'] = pd.to_datetime(df['TransDate:'], errors='coerce')
+# Add last transaction date and date last downloaded
+last_transaction_date = df['TransDate:'].max().strftime('%m/%d/%Y')
+data_last_download = '10/31/2024'
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -15,12 +18,30 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    [html.H2("COSA Campaign Finance Data Dashboard",
-                             style={'text-align': 'center'})]
+                    html.Div(
+                        [
+                            html.Div(f"Data Last Downloaded: {data_last_download}"),
+                            html.Div(f"Date of Last Transaction: {last_transaction_date}")
+                        ],
+                        style={'text-align': 'right', 'fontSize': '16px', 'color': 'gray'}
+                    ),
+                    width=12
                 ),
-                
-            ]
-        ),        
+            ],
+            style={'marginBottom': '10px'}
+        ),
+         dbc.Row(
+            [
+                dbc.Col(
+                    html.H2("COSA Campaign Finance Data"),
+                    width=12,
+                    style={'text-align': 'center'}
+                )
+            ],
+            justify="center",
+            align='center',
+            style={'marginBottom': '20px'}
+        ),      
         dbc.Row(
             [
                 dbc.Col(
@@ -39,6 +60,7 @@ app.layout = dbc.Container(
                         options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
                         id='year-dropdown',
                         placeholder='Select Election Year',
+                        value=2025
                     ),
                     width=6
                 ),
@@ -55,7 +77,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    html.H4("Contributions to Candidates Over Time", style={'text-align': 'center',
+                    html.H4("Cumulative Contributions to Candidates Over Time", style={'text-align': 'center',
                                                                             'marginTop': '40px',
                                                                             'marginBottom': '15px'}),
                     width=12
@@ -78,6 +100,7 @@ app.layout = dbc.Container(
                                 options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
                                 id='year-dropdown-ts',
                                 placeholder='Select Election Year',
+                                value=2025
                             ),
                             width=6
                         ),
@@ -226,7 +249,7 @@ def update_timeseries(selected_year, selected_candidates):
             'name': candidate
         } for candidate in timeseries_df['Cand/Committee:'].unique()],
         'layout': {
-            'title': 'Cumulative Contributions to Candidates Over Time',
+            'title': '',
             'xaxis': {'title': 'Date'},
             'yaxis': {'title': 'Cumulative Contributions ($)'},
             'showlegend': True
