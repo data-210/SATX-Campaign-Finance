@@ -17,7 +17,8 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [html.H2("COSA Campaign Finance Data Dashboard",
                              style={'text-align': 'center'})]
-                )
+                ),
+                
             ]
         ),        
         dbc.Row(
