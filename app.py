@@ -45,7 +45,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    html.H4("Total Contributions to Candidates & Committees",
+                    html.H4("Total Monetary Political Contributions to Candidates & Committees",
                             style={'text-align': 'center',
                                    'marginTop': '40px', 
                                    'marginBottom': '15px'}),
@@ -77,7 +77,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    html.H4("Cumulative Contributions to Candidates Over Time", style={'text-align': 'center',
+                    html.H4("Monetary Political Contributions to Candidates Over Time", style={'text-align': 'center',
                                                                             'marginTop': '40px',
                                                                             'marginBottom': '15px'}),
                     width=12
@@ -112,6 +112,46 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     dcc.Graph(id='timeseries-graph')
+                )
+            ]
+        ),
+        ## Expenditure Time Series Graph
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.H4("Political Expenditures Made From Political Contributions Over Time",
+                            style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
+                            width=12
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Dropdown(
+                        options=[{'label': candidate, 'value': candidate} for candidate in df['Cand/Committee:'].unique()],
+                        id='candidate-dropdown-expenditure',
+                        multi=True,
+                        placeholder='Select Candidate(s)',
+                    ),
+                    width=6
+                ),
+                dbc.Col(
+                            dcc.Dropdown(
+                                options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
+                                id='year-dropdown-expenditure-ts',
+                                placeholder='Select Election Year',
+                                value=2025
+                            ),
+                            width=6
+                        )
+            ],
+            style={'marginTop': '20px', 'marginBottom': '10px'}
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Graph(id='expenditure-timeseries-graph')
                 )
             ]
         ),
@@ -199,7 +239,7 @@ def func(n_clicks_btn, download_type):
     Input('year-dropdown', 'value')
 )
 def update_graph(selected_year):
-    filtered_df = df[df['Contact Type:'] == 'Contributor']
+    filtered_df = df[df['strVal'] == 'Monetary Political Contributions']
     if selected_year:
         filtered_df = filtered_df[filtered_df['Election Year'] == selected_year]
 
@@ -225,7 +265,7 @@ def update_graph(selected_year):
     [Input('year-dropdown-ts', 'value'), Input('candidate-dropdown', 'value')]
 )
 def update_timeseries(selected_year, selected_candidates):
-    filtered_df = df[df['Contact Type:'] == 'Contributor']
+    filtered_df = df[df['strVal'] == 'Monetary Political Contributions']
     if selected_year:
         filtered_df = filtered_df[filtered_df['Election Year'] == selected_year]
     
@@ -253,6 +293,34 @@ def update_timeseries(selected_year, selected_candidates):
             'xaxis': {'title': 'Date'},
             'yaxis': {'title': 'Cumulative Contributions ($)'},
             'showlegend': True
+        }
+    }
+    return fig
+
+# Callback for expenditure timeseries graph
+@app.callback(
+    Output('expenditure-timeseries-graph', 'figure'),
+    [Input('year-dropdown-expenditure-ts', 'value'), Input('candidate-dropdown-expenditure', 'value')]
+)
+def updated_expenditures_timeseries(selected_year, selected_candidates):
+    filtered_df = df[df['Contact Type:'] == 'Expenditure']
+    if selected_year:
+        filtered_df = filtered_df[filtered_df['Election Year'] == selected_year]
+    if selected_candidates:
+        filtered_df = filtered_df[filtered_df['Cand/Committee:'].isin(selected_candidates)]
+    timeseries_df = filtered_df.groupby(['TransDate:', 'Cand/Committee:'])['Amount:'].sum().reset_index()
+    timeseries_df = timeseries_df.sort_values(by=['Cand/Committee:', 'TransDate:'])
+    timeseries_df['Cumulative Expenditures'] = timeseries_df.groupby('Cand/Committee:')['Amount:'].cumsum()
+
+    fig = {
+        'data': [{
+            'x': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['TransDate:'],
+            'y': timeseries_df[timeseries_df['Cand/Committee:'] == candidate]['Cumulative Expenditures'],
+            'type': 'line', 'name': candidate} for candidate in timeseries_df['Cand/Committee:'].unique()],
+        'layout': {'title': 'Political Expenditures Over Time',
+                   'xaxis': {'title': 'Date'},
+                   'yaxis': {'title:': 'Total Expenditures ($)'},
+                   'showlegend': True
         }
     }
     return fig
