@@ -50,11 +50,7 @@ app.layout = dbc.Container(
                                    'marginTop': '40px', 
                                    'marginBottom': '15px'}),
                             width=12
-                )
-            ]
-        ),
-        dbc.Row(
-            [
+                ),
                 dbc.Col(
                     dcc.Dropdown(
                         options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
@@ -64,8 +60,18 @@ app.layout = dbc.Container(
                     ),
                     width=6
                 ),
+                dbc.Col(
+                    [
+                        dcc.Dropdown(
+                            id='candidate-dropdown-bar',
+                            multi=True,
+                            placeholder='Select Candidate(s)'
+                        )
+                    ],
+                    width=6
+                )
             ],
-            style={'marginTop': '20px'}
+            style={'marginTop': '20px', 'marginBottom': '10px'}
         ),
         dbc.Row(
             [
@@ -119,7 +125,7 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    html.H4("Political Expenditures Made From Political Contributions Over Time",
+                    html.H4("Political Expenditures Over Time",
                             style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
                             width=12
                 )
@@ -236,28 +242,52 @@ def func(n_clicks_btn, download_type):
 # Callback for updating candidate-based bar graph
 @app.callback(
     Output('cand-committee-graph', 'figure'),
-    Input('year-dropdown', 'value')
+    [Input('year-dropdown', 'value'), Input('candidate-dropdown-bar', 'value')]
 )
-def update_graph(selected_year):
-    filtered_df = df[df['strVal'] == 'Monetary Political Contributions']
-    if selected_year:
-        filtered_df = filtered_df[filtered_df['Election Year'] == selected_year]
+def update_graph(selected_year, selected_candidates):
+    # Filter for selected year if specified
+    filtered_df = df[df['Election Year'] == selected_year] if selected_year else df
 
-    agg_df = filtered_df.groupby('Cand/Committee:')['Amount:'].sum().reset_index()
+    # Filter by selected candidates
+    if selected_candidates:
+        filtered_df = filtered_df[filtered_df['Cand/Committee:'].isin(selected_candidates)]
 
+    # Seperate contributions and expenditures
+    contributions_df = filtered_df[filtered_df['Contact Type:'] == 'Contributor']
+    expenditures_df = filtered_df[filtered_df['Contact Type:'] == 'Expenditure']
+
+    # Aggregate total contributions and expenditures for each candidate
+    contributions_agg = contributions_df.groupby('Cand/Committee:')['Amount:'].sum().reset_index()
+    expenditures_agg = expenditures_df.groupby('Cand/Committee:')['Amount:'].sum().reset_index()
+
+    # Merge dfs on Cand/Committee:
+    combined_df = pd.merge(contributions_agg, expenditures_agg, on='Cand/Committee:', how='outer',
+                           suffixes=('_contributions', '_expenditures')).fillna(0)
+    
+    # Graph
     fig = {
-        'data': [{
-            'x': agg_df['Cand/Committee:'],
-            'y': agg_df['Amount:'],
-            'type': 'bar'
-        }],
+        'data': [
+            {
+                'x': combined_df['Cand/Committee:'].tolist(),
+                'y': combined_df['Amount:_contributions'].tolist(),
+                'type': 'bar',
+                'name': 'Contributions'
+            },
+            {
+                'x': combined_df['Cand/Committee:'].tolist(),
+                'y': combined_df['Amount:_expenditures'].tolist(),
+                'type': 'bar',
+                'name': 'Expenditures'
+            }
+        ],
         'layout': {
-            'title': f'Contributions to Candidate/Committee for {selected_year or "All Years"}',
+            'title': f'Contributions & Expenditures by Candidate/Committee for {selected_year or "All Years"}',
+            'barmode': 'group',
             'xaxis': {'title': 'Candidate/Committee'},
-            'yaxis': {'title': 'Total Contributions ($)'}
+            'yaxis': {'title': 'Total Amount ($)'}
         }
     }
-    return fig    
+    return fig 
 
 # Callback for timeseries chart
 @app.callback(
