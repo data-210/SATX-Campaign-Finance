@@ -45,31 +45,33 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    html.H4("Total Monetary Political Contributions to Candidates & Committees",
+                    html.H4("Total Contributions & Expenditures",
                             style={'text-align': 'center',
                                    'marginTop': '40px', 
                                    'marginBottom': '15px'}),
                             width=12
                 ),
                 dbc.Col(
-                    dcc.Dropdown(
-                        options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
-                        id='year-dropdown',
-                        placeholder='Select Election Year',
-                        value=2025
-                    ),
-                    width=6
-                ),
-                dbc.Col(
                     [
                         dcc.Dropdown(
+                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
                             id='candidate-dropdown-bar',
                             multi=True,
                             placeholder='Select Candidate(s)'
                         )
                     ],
                     width=6
-                )
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
+                        id='year-dropdown',
+                        placeholder='Select Election Year',
+                        value=2025
+                    ),
+                    width=6
+                ),
+                
             ],
             style={'marginTop': '20px', 'marginBottom': '10px'}
         ),
@@ -94,7 +96,7 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     dcc.Dropdown(
-                        options=[{'label': candidate, 'value': candidate} for candidate in df['Cand/Committee:'].unique()],
+                        options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
                         id='candidate-dropdown',
                         multi=True,
                         placeholder='Select Candidate(s)',
@@ -103,7 +105,7 @@ app.layout = dbc.Container(
                 ),
                 dbc.Col(
                             dcc.Dropdown(
-                                options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
+                                options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
                                 id='year-dropdown-ts',
                                 placeholder='Select Election Year',
                                 value=2025
@@ -135,7 +137,7 @@ app.layout = dbc.Container(
             [
                 dbc.Col(
                     dcc.Dropdown(
-                        options=[{'label': candidate, 'value': candidate} for candidate in df['Cand/Committee:'].unique()],
+                        options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
                         id='candidate-dropdown-expenditure',
                         multi=True,
                         placeholder='Select Candidate(s)',
@@ -144,7 +146,7 @@ app.layout = dbc.Container(
                 ),
                 dbc.Col(
                             dcc.Dropdown(
-                                options=[{'label': str(int(year)), 'value': int(year)} for year in df['Election Year'].dropna().unique()],
+                                options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
                                 id='year-dropdown-expenditure-ts',
                                 placeholder='Select Election Year',
                                 value=2025
