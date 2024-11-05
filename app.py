@@ -163,6 +163,94 @@ app.layout = dbc.Container(
                 )
             ]
         ),
+        # Top Donors Table
+        dbc.Row(
+            [
+                dbc.Col(
+                    html.H4("Donors & Contributions",
+                            style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
+                            width=12
+                )
+            ]
+        ),
+        # Row with both tables and drop downs aligned and styled
+        dbc.Row(
+            [
+                # Left: Top Donors Table
+                dbc.Col(
+                    [
+                        html.H5("Top Donors by Total Contributions", style={'text-align': 'center', 'marginBottom':'10px'}),
+                        # Election Year dropdown for Top Donors table
+                        dcc.Dropdown(
+                            options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
+                            id = 'donor-year-dropdown',
+                            placeholder='Select Election Year',
+                            value=2025,
+                            style={'marginBottom': '10px'}
+                        ),
+                        # Candidate Dropdown for Top Donors table
+                        dcc.Dropdown(
+                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
+                            id='donor-candidate-dropdown',
+                            placeholder='Select Candidate',
+                            style={'marginBottom': '20px'}
+                        ),
+                        # Top Donors Table
+                        dash_table.DataTable(
+                            id='top-donors-aggregated-table',
+                            columns = [
+                                {'name': 'Donor Name', 'id': 'Name:'},
+                                {'name': 'Total Amount Donated', 'id': 'Total Amount', 'type': 'numeric', 'format': {'specifier': '$,.2f'}},
+                                {'name': 'Number of Donations', 'id': 'Donation Count'},
+                                {'name': 'Top Candidate', 'id': 'Top Candidate'}
+                            ],
+                            page_size=10,
+                            style_table={'overflowX': 'auto'},
+                            style_cell={'textAlign': 'center'}
+                        )
+                    ],
+                    width = 6,
+                    style={'marginBottom': '20px'}
+                ),
+                # Right: Average Donation Table
+                dbc.Col(
+                    [
+                        html.H5("Average Donation to Candidates", style={'text-align': 'center', 'marginBottom': '10px'}),
+                        # Election Year Dropdown for Average Donation Table
+                        dcc.Dropdown(
+                            options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
+                            id='average-donation-year-dropdown',
+                            placeholder='Select Election Year',
+                            value=2025,
+                            style={'marginBottom': '10px'}
+                        ),
+                        # Candidate Dropdown for Average Donation Table
+                        dcc.Dropdown(
+                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
+                            id='average-donation-candidate-dropdown',
+                            placeholder='Select Candidate',
+                            style={'marginBottom': '20px'}
+                        ),
+                        # Average Donation Table
+                        dash_table.DataTable(
+                            id='average-donation-table',
+                            columns = [
+                                {'name': 'Candidate', 'id': 'Cand/Committee:'},
+                                {'name': 'Average Donation Amount', 'id': 'Average Donation', 'type': 'numeric', 'format': {'specifier': '$,.2f'}},
+                                {'name': 'Number of Donations', 'id': 'Donation Count'},
+                                {'name': 'Top Donor', 'id': 'Top Donor'}
+                            ],
+                            page_size=10,
+                            style_table={'overflowX': 'auto'},
+                            style_cell={'textAlign': 'center'}
+                        )
+                    ],
+                    width=6,
+                    style={'marginBottom': '20px', 'paddingLeft': '15px'}
+                )
+            ],
+            style={'marginBottom': '20px'}
+        ),
         dbc.Container(
             [
                 # Header
@@ -356,6 +444,69 @@ def updated_expenditures_timeseries(selected_year, selected_candidates):
         }
     }
     return fig
+
+# Callback for Top Donors Table
+@app.callback(
+    Output('top-donors-aggregated-table', 'data'),
+    [Input('donor-year-dropdown', 'value'), Input('donor-candidate-dropdown', 'value')]
+)
+def update_top_donors_aggregated_table(selected_year, selected_candidate):
+    # Filter for contributors in selected year
+    contributors_df = df[(df['Contact Type:'] == 'Contributor') & (df['Election Year'] == selected_year)]
+    if selected_candidate:
+        contributors_df = contributors_df[contributors_df['Cand/Committee:'] == selected_candidate]
+
+    # Check for data
+    if contributors_df.empty:
+        return []
+    
+    # Aggregate data by donor
+    top_donors = contributors_df.groupby('Name:').agg(
+        **{
+            'Total Amount': ('Amount:', 'sum'),
+            'Donation Count': ('Amount:', 'size')
+        }
+    ).reset_index()
+
+    # Identify top candidate by amount for each donor
+    top_candidate_df = contributors_df.groupby(['Name:', 'Cand/Committee:'])['Amount:'].sum().reset_index()
+    top_candidate_df = top_candidate_df.loc[top_candidate_df.groupby('Name:')['Amount:'].idxmax()]
+    top_donors = top_donors.merge(top_candidate_df[['Name:', 'Cand/Committee:']], on='Name:')
+    top_donors.rename(columns={'Cand/Committee:': 'Top Candidate'}, inplace=True)
+
+    # Sort by total amount and select top 10 donors
+    top_donors = top_donors.sort_values(by='Total Amount', ascending=False)#.head(10)
+
+    return top_donors.to_dict('records')
+
+# Callback for Average Donation Table
+@app.callback(
+    Output('average-donation-table', 'data'),
+    [Input('average-donation-year-dropdown', 'value'), Input('average-donation-candidate-dropdown', 'value')]
+)
+def update_average_donation_table(selected_year, selected_candidate):
+    filtered_df = df[(df['Contact Type:'] == 'Contributor') & (df['Election Year'] == selected_year)]
+
+    if selected_candidate:
+        filtered_df = filtered_df[filtered_df['Cand/Committee:'] == selected_candidate]
+
+    if filtered_df.empty:
+        return []
+    
+    avg_donation_df = filtered_df.groupby('Cand/Committee:').agg(
+        Average_Donation = ('Amount:', 'mean'),
+        Donation_Count = ('Amount:', 'size')
+    ).reset_index()
+
+    top_donor_df = filtered_df.groupby(['Cand/Committee:', 'Name:'])['Amount:'].sum().reset_index()
+    top_donor_df = top_donor_df.loc[top_donor_df.groupby('Cand/Committee:')['Amount:'].idxmax()]
+    avg_donation_df = avg_donation_df.merge(top_donor_df[['Cand/Committee:', 'Name:']], on='Cand/Committee:')
+    avg_donation_df.rename(columns={'Average_Donation': 'Average Donation', 'Donation_Count': 'Donation Count', 'Name:': 'Top Donor'}, inplace=True)
+
+    # Sort by Average Donation
+    avg_donation_df = avg_donation_df.sort_values(by='Average Donation', ascending=False)
+    
+    return avg_donation_df.to_dict('records')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
