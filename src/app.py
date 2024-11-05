@@ -233,7 +233,8 @@ app.layout = dbc.Container(
                         dcc.Dropdown(
                             options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
                             id='average-donation-candidate-dropdown',
-                            placeholder='Select Candidate',
+                            placeholder='Select Candidate(s)',
+                            multi=True,
                             style={'marginBottom': '20px'}
                         ),
                         # Average Donation Table
@@ -497,7 +498,7 @@ def update_average_donation_table(selected_year, selected_candidate):
     filtered_df = df[(df['Contact Type:'] == 'Contributor') & (df['Election Year'] == selected_year)]
 
     if selected_candidate:
-        filtered_df = filtered_df[filtered_df['Cand/Committee:'] == selected_candidate]
+        filtered_df = filtered_df[filtered_df['Cand/Committee:'].isin(selected_candidate)]
 
     if filtered_df.empty:
         return []
