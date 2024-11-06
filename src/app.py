@@ -28,7 +28,7 @@ app.layout = dbc.Container(
                             html.Div(f"Data Last Downloaded: {data_last_download}"),
                             html.Div(f"Date of Last Transaction: {last_transaction_date}")
                         ],
-                        style={'text-align': 'right', 'fontSize': '16px', 'color': 'gray'}
+                        style={'text-align': 'right', 'fontSize': '14px', 'color': '#333333'}
                     ),
                     width=12
                 ),
@@ -40,7 +40,7 @@ app.layout = dbc.Container(
                 dbc.Col(
                     html.H2("COSA Campaign Finance Data"),
                     width=12,
-                    style={'text-align': 'center'}
+                    style={'text-align': 'center', 'font-weight': 'bold', 'color': '#333333'}
                 )
             ],
             justify="center",
@@ -53,7 +53,8 @@ app.layout = dbc.Container(
                     html.H4("Total Contributions & Expenditures",
                             style={'text-align': 'center',
                                    'marginTop': '40px', 
-                                   'marginBottom': '15px'}),
+                                   'marginBottom': '15px',
+                                   'color': '#1s73e8'}),
                             width=12
                 ),
                 dbc.Col(
@@ -83,9 +84,17 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(id='cand-committee-graph')
-                )
-            ]
+                    dcc.Graph(id='cand-committee-graph', config={'displayModeBar': False}),
+                    width=12,
+                    style={
+                        'border': '1px solid #e0e0e0',
+                        'padding': '20px',
+                        'box-shadow': '2px 2px 8px rbga(0,0,0,0.1)',
+                        'backgroundColor': 'white'
+                    }
+                ),
+            ],
+            style={'marginBottom': '30px'}
         ),
         dbc.Row(
             [
@@ -124,9 +133,17 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(id='timeseries-graph')
-                )
-            ]
+                    dcc.Graph(id='timeseries-graph'),
+                    width=12,
+                    style={
+                        'border': '1px solid #e0e0e0',
+                        'padding': '20px',
+                        'box-shadow': '2px 2px 8px rbga(0,0,0,0.1)',
+                        'backgroundColor': 'white'
+                    }
+                ),
+            ],
+            style={'marginBottom': '30px'}
         ),
         # Expenditure Time Series Graph
         dbc.Row(
@@ -164,9 +181,17 @@ app.layout = dbc.Container(
         dbc.Row(
             [
                 dbc.Col(
-                    dcc.Graph(id='expenditure-timeseries-graph')
-                )
-            ]
+                    dcc.Graph(id='expenditure-timeseries-graph'),
+                    width=12,
+                    style={
+                        'border': '1px solid #e0e0e0',
+                        'padding': '20px',
+                        'box-shadow': '2px 2px 8px rbga(0,0,0,0.1)',
+                        'backgroundColor': 'white'
+                    }
+                ),
+            ],
+            style={'marginBottom': '30px'}
         ),
         # Top Donors Table
         dbc.Row(
@@ -184,7 +209,7 @@ app.layout = dbc.Container(
                 # Left: Top Donors Table
                 dbc.Col(
                     [
-                        html.H5("Top Donors by Total Contributions", style={'text-align': 'center', 'marginBottom':'10px'}),
+                        html.H5("Top Donors by Total Contributions", style={'text-align': 'center', 'color': '#333333', 'marginBottom':'10px'}),
                         # Election Year dropdown for Top Donors table
                         dcc.Dropdown(
                             options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
@@ -210,8 +235,18 @@ app.layout = dbc.Container(
                                 {'name': 'Top Candidate', 'id': 'Top Candidate'}
                             ],
                             page_size=10,
+                            sort_action='native',
                             style_table={'overflowX': 'auto'},
-                            style_cell={'textAlign': 'center'}
+                            style_header={
+                                'backgroundColor': '#f1f1f1',
+                                'fontWeight': 'bold',
+                                'color': '#333333'
+                            },
+                            style_cell={'textAlign': 'center'},
+                            style_data_conditional=[
+                                {'if': {'row_index': 'odd'},
+                                 'backgroundColor': '#f9f9f9'}
+                            ]
                         )
                     ],
                     width = 6,
@@ -220,7 +255,7 @@ app.layout = dbc.Container(
                 # Right: Average Donation Table
                 dbc.Col(
                     [
-                        html.H5("Average Donation to Candidates", style={'text-align': 'center', 'marginBottom': '10px'}),
+                        html.H5("Average Donation to Candidates", style={'text-align': 'center', 'color': '#333333', 'marginBottom': '10px'}),
                         # Election Year Dropdown for Average Donation Table
                         dcc.Dropdown(
                             options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
@@ -247,8 +282,16 @@ app.layout = dbc.Container(
                                 {'name': 'Top Donor', 'id': 'Top Donor'}
                             ],
                             page_size=10,
+                            sort_action='native',
                             style_table={'overflowX': 'auto'},
-                            style_cell={'textAlign': 'center'}
+                            style_header={'backgroundColor': '#f1f1f1',
+                                          'fontWeight': 'bold',
+                                          'color': '#333333'},
+                            style_cell={'textAlign': 'center'},
+                            style_data_conditional=[
+                                {'if': {'row_index': 'odd'},
+                                 'backgroundColor': '#f9f9f9'}
+                            ]
                         )
                     ],
                     width=6,
@@ -257,6 +300,7 @@ app.layout = dbc.Container(
             ],
             style={'marginBottom': '20px'}
         ),
+        # Download the data
         dbc.Container(
             [
                 # Header
@@ -299,7 +343,7 @@ app.layout = dbc.Container(
                                 id='datatable-interactivity',
                                 data=df.to_dict('records'),
                                 columns=[{'name': i, 'id': i} for i in df.columns],
-                                page_size=25,
+                                page_size=15,
                                 style_table={'overflowX': 'auto'},
                                 filter_action='native',
                                 sort_action='native',
@@ -445,7 +489,7 @@ def updated_expenditures_timeseries(selected_year, selected_candidates):
             'x': timeseries_df[timeseries_df['Cand/Committee:']==candidate]['TransDate:'],
             'y': timeseries_df[timeseries_df['Cand/Committee:'] == candidate]['Cumulative Expenditures'],
             'type': 'line', 'name': candidate} for candidate in timeseries_df['Cand/Committee:'].unique()],
-        'layout': {'title': 'Political Expenditures Over Time',
+        'layout': {'title': '',
                    'xaxis': {'title': 'Date'},
                    'yaxis': {'title:': 'Total Expenditures ($)'},
                    'showlegend': True
