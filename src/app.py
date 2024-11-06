@@ -1,9 +1,13 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
-import pandas as pd
 from collections import OrderedDict
+from pathlib import Path
 import dash_bootstrap_components as dbc
+import pandas as pd
 
-df = pd.read_csv('data/campaign_finance20241031.csv')
+REPO = Path(__file__).resolve().parents[1]
+DATA = Path.joinpath(REPO, 'data')
+
+df = pd.read_csv(Path.joinpath(DATA, 'campaign_finance20241031.csv'))
 
 # Convert TransDate: to date time
 df['TransDate:'] = pd.to_datetime(df['TransDate:'], errors='coerce')
@@ -12,6 +16,7 @@ last_transaction_date = df['TransDate:'].max().strftime('%m/%d/%Y')
 data_last_download = '10/31/2024'
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 app.layout = dbc.Container(
     [
@@ -123,7 +128,7 @@ app.layout = dbc.Container(
                 )
             ]
         ),
-        ## Expenditure Time Series Graph
+        # Expenditure Time Series Graph
         dbc.Row(
             [
                 dbc.Col(
@@ -315,7 +320,7 @@ app.layout = dbc.Container(
     style={'paddingBottom': '40px'}
 )
 
-               
+       
 # Callback for downloading data
 @app.callback(
     Output('download', 'data'),
@@ -323,12 +328,12 @@ app.layout = dbc.Container(
     State('dropdown', 'value'),
     prevent_initial_call=True,
 )
-
 def func(n_clicks_btn, download_type):
     if download_type == 'csv':
         return dcc.send_data_frame(df.to_csv, 'cosa_cf.csv')
     else:
         return dcc.send_data_frame(df.to_excel, 'cosa_cf.xlsx')
+
 
 # Callback for updating candidate-based bar graph
 @app.callback(
@@ -354,7 +359,7 @@ def update_graph(selected_year, selected_candidates):
     # Merge dfs on Cand/Committee:
     combined_df = pd.merge(contributions_agg, expenditures_agg, on='Cand/Committee:', how='outer',
                            suffixes=('_contributions', '_expenditures')).fillna(0)
-    
+
     # Graph
     fig = {
         'data': [
@@ -378,7 +383,8 @@ def update_graph(selected_year, selected_candidates):
             'yaxis': {'title': 'Total Amount ($)'}
         }
     }
-    return fig 
+    return fig
+
 
 # Callback for timeseries chart
 @app.callback(
@@ -389,10 +395,10 @@ def update_timeseries(selected_year, selected_candidates):
     filtered_df = df[df['strVal'] == 'Monetary Political Contributions']
     if selected_year:
         filtered_df = filtered_df[filtered_df['Election Year'] == selected_year]
-    
+
     if selected_candidates:
         filtered_df = filtered_df[filtered_df['Cand/Committee:'].isin(selected_candidates)]
-    
+
     # Aggregate data by Cand/Committee: and TransDate:
     timeseries_df = filtered_df.groupby(['TransDate:', 'Cand/Committee:'])['Amount:'].sum().reset_index()
 
@@ -418,6 +424,7 @@ def update_timeseries(selected_year, selected_candidates):
     }
     return fig
 
+
 # Callback for expenditure timeseries graph
 @app.callback(
     Output('expenditure-timeseries-graph', 'figure'),
@@ -442,9 +449,10 @@ def updated_expenditures_timeseries(selected_year, selected_candidates):
                    'xaxis': {'title': 'Date'},
                    'yaxis': {'title:': 'Total Expenditures ($)'},
                    'showlegend': True
-        }
+                   }
     }
     return fig
+
 
 # Callback for Top Donors Table
 @app.callback(
@@ -460,7 +468,7 @@ def update_top_donors_aggregated_table(selected_year, selected_candidate):
     # Check for data
     if contributors_df.empty:
         return []
-    
+
     # Aggregate data by donor
     top_donors = contributors_df.groupby('Name:').agg(
         **{
@@ -480,6 +488,7 @@ def update_top_donors_aggregated_table(selected_year, selected_candidate):
 
     return top_donors.to_dict('records')
 
+
 # Callback for Average Donation Table
 @app.callback(
     Output('average-donation-table', 'data'),
@@ -493,7 +502,7 @@ def update_average_donation_table(selected_year, selected_candidate):
 
     if filtered_df.empty:
         return []
-    
+
     avg_donation_df = filtered_df.groupby('Cand/Committee:').agg(
         Average_Donation = ('Amount:', 'mean'),
         Donation_Count = ('Amount:', 'size')
@@ -506,8 +515,9 @@ def update_average_donation_table(selected_year, selected_candidate):
 
     # Sort by Average Donation
     avg_donation_df = avg_donation_df.sort_values(by='Average Donation', ascending=False)
-
+  
     return avg_donation_df.to_dict('records')
 
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, host="0.0.0.0", port="8050", use_reloader=False)
