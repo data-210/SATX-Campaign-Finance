@@ -1,6 +1,7 @@
 from dash import Dash, dash_table, dcc, html, Input, Output, State
 from collections import OrderedDict
 from pathlib import Path
+import logging
 import dash_bootstrap_components as dbc
 import pandas as pd
 
@@ -15,8 +16,10 @@ df['TransDate:'] = pd.to_datetime(df['TransDate:'], errors='coerce')
 last_transaction_date = df['TransDate:'].max().strftime('%m/%d/%Y')
 data_last_download = '10/31/2024'
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__)
 server = app.server
+
+logging.debug("Starting server...")
 
 app.layout = dbc.Container(
     [
@@ -128,8 +131,7 @@ app.layout = dbc.Container(
                         ),
             ],
             style={'marginTop': '20px', 'marginBottom': '10px'}
-        ),
-        
+        ),  
         dbc.Row(
             [
                 dbc.Col(
@@ -193,7 +195,7 @@ app.layout = dbc.Container(
             ],
             style={'marginBottom': '30px'}
         ),
-        # Top Donors Table
+#         # Top Donors Table
         dbc.Row(
             [
                 dbc.Col(
@@ -213,7 +215,7 @@ app.layout = dbc.Container(
                         # Election Year dropdown for Top Donors table
                         dcc.Dropdown(
                             options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
-                            id = 'donor-year-dropdown',
+                            id='donor-year-dropdown',
                             placeholder='Select Election Year',
                             value=2025,
                             style={'marginBottom': '10px'}
@@ -228,7 +230,7 @@ app.layout = dbc.Container(
                         # Top Donors Table
                         dash_table.DataTable(
                             id='top-donors-aggregated-table',
-                            columns = [
+                            columns=[
                                 {'name': 'Donor Name', 'id': 'Name:'},
                                 {'name': 'Total Amount Donated', 'id': 'Total Amount', 'type': 'numeric', 'format': {'specifier': '$,.2f'}},
                                 {'name': 'Number of Donations', 'id': 'Donation Count'},
@@ -299,84 +301,9 @@ app.layout = dbc.Container(
                 )
             ],
             style={'marginBottom': '20px'}
-        ),
-        # Download the data
-        dbc.Container(
-            [
-                # Header
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.H4(
-                                "Download COSA Campaign Finance Data",
-                                style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '10px'}
-                            ),
-                            width=12
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dcc.Dropdown(
-                                options=[
-                                    {'label': 'Excel file', 'value': 'excel'},
-                                    {'label': 'CSV file', 'value': 'csv'},
-                                ],
-                                id='dropdown',
-                                placeholder='Choose download file type. Default is CSV',
-                            ),
-                            width=3
-                        ),
-                        dbc.Col(
-                            dbc.Button('Download data', id='btn-csv'),
-                            width=3
-                        ),
-                    ],
-                    style={'marginTop': '20px'}
-                ),
-                # Data table with extra margin at the bottom
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            dash_table.DataTable(
-                                id='datatable-interactivity',
-                                data=df.to_dict('records'),
-                                columns=[{'name': i, 'id': i} for i in df.columns],
-                                page_size=15,
-                                style_table={'overflowX': 'auto'},
-                                filter_action='native',
-                                sort_action='native',
-                                column_selectable='single',
-                                row_selectable='multi'
-                            ),
-                            width=12
-                        ),
-                        html.Div(id='datatable-interactivity-container')
-                    ],
-                    style={'marginTop': '20px', 'paddingBottom': '40px'}
-                ),
-            ],
-            style={'paddingBottom': '40px', 'marginBottom': '20px'}
-        ),
-        dcc.Download(id='download'),
-    ],
-    style={'paddingBottom': '40px'}
+        )
+    ]
 )
-
-       
-# Callback for downloading data
-@app.callback(
-    Output('download', 'data'),
-    Input('btn-csv', 'n_clicks'),
-    State('dropdown', 'value'),
-    prevent_initial_call=True,
-)
-def func(n_clicks_btn, download_type):
-    if download_type == 'csv':
-        return dcc.send_data_frame(df.to_csv, 'cosa_cf.csv')
-    else:
-        return dcc.send_data_frame(df.to_excel, 'cosa_cf.xlsx')
 
 
 # Callback for updating candidate-based bar graph
@@ -498,7 +425,7 @@ def updated_expenditures_timeseries(selected_year, selected_candidates):
     return fig
 
 
-# Callback for Top Donors Table
+# # Callback for Top Donors Table
 @app.callback(
     Output('top-donors-aggregated-table', 'data'),
     [Input('donor-year-dropdown', 'value'), Input('donor-candidate-dropdown', 'value')]
@@ -559,9 +486,10 @@ def update_average_donation_table(selected_year, selected_candidate):
 
     # Sort by Average Donation
     avg_donation_df = avg_donation_df.sort_values(by='Average Donation', ascending=False)
-  
+
     return avg_donation_df.to_dict('records')
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True, host="0.0.0.0", port="8050", use_reloader=False)
+    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+    app.run_server(debug=True)
