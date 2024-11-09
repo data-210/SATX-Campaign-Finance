@@ -66,7 +66,8 @@ app.layout = dbc.Container(
                             options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
                             id='candidate-dropdown-bar',
                             multi=True,
-                            placeholder='Select Candidate(s)'
+                            placeholder='Select Candidate(s)',
+                            style={'marginBottom': '10px'}
                         )
                     ],
                     width=6
@@ -117,6 +118,7 @@ app.layout = dbc.Container(
                         id='candidate-dropdown',
                         multi=True,
                         placeholder='Select Candidate(s)',
+                        style={'marginBottom': '10px'}
                     ),
                     width=6
                 ),
@@ -165,6 +167,7 @@ app.layout = dbc.Container(
                         id='candidate-dropdown-expenditure',
                         multi=True,
                         placeholder='Select Candidate(s)',
+                        style={'marginBottom': '10px'}
                     ),
                     width=6
                 ),
@@ -301,6 +304,101 @@ app.layout = dbc.Container(
                 )
             ],
             style={'marginBottom': '20px'}
+        ),
+        # Download the Data
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.H4("Download the Data", style={'text-align': 'center', 'color': '#333333', 'marginTop': '30px'}),
+                        html.P(
+                            """
+                            The complete campaign finance dataset used in this application is available from the City of San Antonio's campaign finance website and Data210's GitHub repository.
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.Ul(
+                            [
+                                html.Li(html.A("City of San Antonio Campaign Finance Page", href="https://webapp1.sanantonio.gov/campfinsearch/search.aspx",
+                                               target="_blank", style={'color': '#1a73e8'})),
+                                html.Li(html.A("Data210 GitHub Repository for Full Dataset", href="https://github.com/data-210/SATX-Campaign-Finance/tree/63e582011c14becc00d8e3ad4bfe0edbf714999d/data",
+                                               target="_blank", style={'color': '#1a73e8'}))
+                                               
+                            ],
+                            style={'marginTop': '10px'}
+                        )
+                    ],
+                    width=12,
+                    style={'padding': '20px', 'backgroundColor': '#f9f9f9', 'borderTop': '1px solid #e0e0e0'}
+                )
+            ],
+            style={'marginTop': '30px'}
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.H4("Methodology", style={'text-align': 'center', 'color': '#333333', 'marginTop': '20px'}),
+                        html.P(
+                            """
+                            This City of San Antonio Campaign Finance dashboard was created to provide insights into political donations and expenditures of candidates for San Antonio's various political offices.
+                            Users can explore previous election years' campaign finance figures as well as upcoming elections.
+                            The graphs and tables above provide detail about each candidate's expenditures and donations, as well as top donors to each candidate and the average donation amount each candidate receives.
+                            This effort was influenced by a curiosity about how candidates for San Antonio City Council and Mayor raise money, spend money, how much money is involved in these campaigns, and who is donating money to candidates.
+                            As Article VII of the City Charter, which covers campaign finance, says:  "It is essential in a democratic system that the public has confidence in the integrity, independence, and impartiality of those who are elected to act on their behalf in government. There is a public perception that a relationship exists between substantial contributions and access to elected officials. To diminish the perceived or actual connection between contributions and influence, the city adopts this Campaign Finance Code to promote public confidence and, it is hoped, a greater degree of citizen participation in the electoral process."
+                            We hope that this dashboard encourages San Antonio voters to learn more about how candidates who wish to represent them in city government are funded.
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.P(
+                            """
+                            The first graph of the dashboard, Total Contributions and Expenditures, shows the sum total of all donations to each candidate and the sum total of all expenditures made by the same candidate.
+                            Users can use the Election Year dropdown to view data for the previous election years or for the next City election year (2025). 
+                            The Election Year dropdown values come from the campaign finance reports submitted by the candidates. When candidates submit a campaign finance report detailing a donation or an expenditure, the election year for that particular report must be specified.
+                            The candidate dropdown values come from the Cand/Committee: column of the campaign finance data. Users have the ability to select multiple candidates and examine the contributions and expenditures for each.
+                            For example, if you wanted to see donations and expenditures for Councilwoman Kaur and former Councilman Bravo (District 1) in the 2023 City Council election, you would select '2023' from the Election Year dropdown and select Sukh Kaur and Mario Bravo in the candidate dropdown.
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.P(
+                            """
+                            The next two graphs show contributions and expenditures over time for each candidate in a given election year. 
+                            These graphs show how much money candidates have received over the course of a calendar year for a given election. It also shows how much money candidates have spent over time for a given election year.
+                            The Election Year and Candidate dropdown menus work the same way as the Total Contributions and Expenditures dropdowns.
+                            Users can choose an election year and either one or several candidates to view how much money their campaigns received over time and how much money the candidates spent as the year progresses.
+                            Sticking with the Councilwoman Kaur and former Councilman Bravo example, the user can see the Bravo started receiving contributions for Election Year 2023 much sooner than Councilwoman Kaur did and that he raised more money overall.
+                            Bravo also spent more money during the campaign that Kaur, but ended up losing the election.
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.P(
+                            """
+                            The final two tables of the dashboard show Top Donors by Total Contributions and Average Donations to Candidates.
+                            The first table, Top Donors by Total Contributions, allows users to see who the top donor is to each candidate. 
+                            Election Year 2025 is the default option for this table, but users can choose any election year and candidate they want.
+                            The table is automatically sorted by the "Total Amount Donated" column (largest donation to smallest), but the user has the option to sort by the other columns, as well.
+                            Users can also see how many times a donor has contributed to a candidate. For example, for Election Year 2025, Councilwoman Kaur's top donor has made 5 contributions totaling $2,500.
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.P(
+                            """
+                            The second table shows Average Donations to Candidates. The final column of the table also shows who that candidate's top donor is.
+                            Like the table above, users can choose different election years but can also select multiple candidates for comparison.
+                            Let's look at the race between Sukh Kaur and Mario Bravo again. By selecting Election Year 2023 and those candidates, the user can see that Bravo's average donation was $320.00 and Kaur's was $282.02.
+                            Bravo also received a lower number of donations compared to Kaur. 
+                            """,
+                            style={'text-align': 'justify', 'color': '#333333', 'marginTop': '15px'}
+                        ),
+                        html.P(
+                            """
+                            This dashboard will continue to be updated on a monthly basis. If there any questions, feature requests, comments, or problems with the data, we'd love to hear from you!
+                            You can reach out at jack@data210.com.
+                            """
+                        )
+                    ]
+                )
+            ]
         )
     ]
 )
