@@ -49,6 +49,32 @@ app.layout = dbc.Container(
             justify="center",
             align='center',
             style={'marginBottom': '20px'}
+        ),
+        # Update with global dropdown
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Dropdown(
+                        options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
+                        id='global-year-dropdown',
+                        placeholder='Select Election Year',
+                        value=2025,
+                        style={'marginBottom': '10px'}
+                    ),
+                    width=6
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
+                        id='global-candidate-dropdown',
+                        multi=True,
+                        placeholder='Select Candidate(s)',
+                        style={'marginBottom': '10px'}
+                    ),
+                    width=6
+                ),
+            ],
+            style={'marginBottom': '20px'}
         ),      
         dbc.Row(
             [
@@ -60,33 +86,6 @@ app.layout = dbc.Container(
                                    'color': '#1s73e8'}),
                             width=12
                 ),
-                dbc.Col(
-                    [
-                        dcc.Dropdown(
-                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
-                            id='candidate-dropdown-bar',
-                            multi=True,
-                            placeholder='Select Candidate(s)',
-                            style={'marginBottom': '10px'}
-                        )
-                    ],
-                    width=6
-                ),
-                dbc.Col(
-                    dcc.Dropdown(
-                        options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
-                        id='year-dropdown',
-                        placeholder='Select Election Year',
-                        value=2025
-                    ),
-                    width=6
-                ),
-                
-            ],
-            style={'marginTop': '20px', 'marginBottom': '10px'}
-        ),
-        dbc.Row(
-            [
                 dbc.Col(
                     dcc.Graph(id='cand-committee-graph', config={'displayModeBar': False}),
                     width=12,
@@ -107,35 +106,7 @@ app.layout = dbc.Container(
                                                                             'marginTop': '40px',
                                                                             'marginBottom': '15px'}),
                     width=12
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Dropdown(
-                        options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
-                        id='candidate-dropdown',
-                        multi=True,
-                        placeholder='Select Candidate(s)',
-                        style={'marginBottom': '10px'}
-                    ),
-                    width=6
                 ),
-                dbc.Col(
-                            dcc.Dropdown(
-                                options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
-                                id='year-dropdown-ts',
-                                placeholder='Select Election Year',
-                                value=2025
-                            ),
-                            width=6
-                        ),
-            ],
-            style={'marginTop': '20px', 'marginBottom': '10px'}
-        ),  
-        dbc.Row(
-            [
                 dbc.Col(
                     dcc.Graph(id='timeseries-graph'),
                     width=12,
@@ -156,35 +127,7 @@ app.layout = dbc.Container(
                     html.H4("Political Expenditures Over Time",
                             style={'text-align': 'center', 'marginTop': '20px', 'marginBottom': '20px'}),
                             width=12
-                )
-            ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    dcc.Dropdown(
-                        options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
-                        id='candidate-dropdown-expenditure',
-                        multi=True,
-                        placeholder='Select Candidate(s)',
-                        style={'marginBottom': '10px'}
-                    ),
-                    width=6
                 ),
-                dbc.Col(
-                            dcc.Dropdown(
-                                options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
-                                id='year-dropdown-expenditure-ts',
-                                placeholder='Select Election Year',
-                                value=2025
-                            ),
-                            width=6
-                        )
-            ],
-            style={'marginTop': '20px', 'marginBottom': '10px'}
-        ),
-        dbc.Row(
-            [
                 dbc.Col(
                     dcc.Graph(id='expenditure-timeseries-graph'),
                     width=12,
@@ -197,6 +140,7 @@ app.layout = dbc.Container(
                 ),
             ],
             style={'marginBottom': '30px'}
+            
         ),
 #         # Top Donors Table
         dbc.Row(
@@ -211,7 +155,51 @@ app.layout = dbc.Container(
         # Row with both tables and drop downs aligned and styled
         dbc.Row(
             [
-                # Left: Top Donors Table
+                dbc.Col(
+                    [
+                        html.H5("Average Donation to Candidates", style={'text-align': 'center', 'color': '#333333', 'marginBottom': '10px'}),
+                        # Election Year Dropdown for Average Donation Table
+                        dcc.Dropdown(
+                            options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
+                            id='average-donation-year-dropdown',
+                            placeholder='Select Election Year',
+                            value=2025,
+                            style={'marginBottom': '10px'}
+                        ),
+                        # Candidate Dropdown for Average Donation Table
+                        dcc.Dropdown(
+                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
+                            id='average-donation-candidate-dropdown',
+                            placeholder='Select Candidate(s)',
+                            multi=True,
+                            style={'marginBottom': '20px'}
+                        ),
+                        # Average Donation Table
+                        dash_table.DataTable(
+                            id='average-donation-table',
+                            columns = [
+                                {'name': 'Candidate', 'id': 'Cand/Committee:'},
+                                {'name': 'Average Donation Amount', 'id': 'Average Donation', 'type': 'numeric', 'format': {'specifier': '$,.2f'}},
+                                {'name': 'Number of Donations', 'id': 'Donation Count'},
+                                {'name': 'Top Donor', 'id': 'Top Donor'}
+                            ],
+                            page_size=10,
+                            sort_action='native',
+                            style_table={'overflowX': 'auto'},
+                            style_header={'backgroundColor': '#f1f1f1',
+                                          'fontWeight': 'bold',
+                                          'color': '#333333'},
+                            style_cell={'textAlign': 'center'},
+                            style_data_conditional=[
+                                {'if': {'row_index': 'odd'},
+                                 'backgroundColor': '#f9f9f9'}
+                            ]
+                        )
+                    ],
+                    width=6,
+                    style={'marginBottom': '20px', 'paddingLeft': '15px'}
+                ),
+                #Top Donors Table
                 dbc.Col(
                     [
                         html.H5("Top Donors by Total Contributions", style={'text-align': 'center', 'color': '#333333', 'marginBottom':'10px'}),
@@ -258,50 +246,7 @@ app.layout = dbc.Container(
                     style={'marginBottom': '20px'}
                 ),
                 # Right: Average Donation Table
-                dbc.Col(
-                    [
-                        html.H5("Average Donation to Candidates", style={'text-align': 'center', 'color': '#333333', 'marginBottom': '10px'}),
-                        # Election Year Dropdown for Average Donation Table
-                        dcc.Dropdown(
-                            options=[{'label': str(int(year)), 'value': int(year)} for year in sorted(df['Election Year'].dropna().unique())],
-                            id='average-donation-year-dropdown',
-                            placeholder='Select Election Year',
-                            value=2025,
-                            style={'marginBottom': '10px'}
-                        ),
-                        # Candidate Dropdown for Average Donation Table
-                        dcc.Dropdown(
-                            options=[{'label': candidate, 'value': candidate} for candidate in sorted(df['Cand/Committee:'].unique())],
-                            id='average-donation-candidate-dropdown',
-                            placeholder='Select Candidate(s)',
-                            multi=True,
-                            style={'marginBottom': '20px'}
-                        ),
-                        # Average Donation Table
-                        dash_table.DataTable(
-                            id='average-donation-table',
-                            columns = [
-                                {'name': 'Candidate', 'id': 'Cand/Committee:'},
-                                {'name': 'Average Donation Amount', 'id': 'Average Donation', 'type': 'numeric', 'format': {'specifier': '$,.2f'}},
-                                {'name': 'Number of Donations', 'id': 'Donation Count'},
-                                {'name': 'Top Donor', 'id': 'Top Donor'}
-                            ],
-                            page_size=10,
-                            sort_action='native',
-                            style_table={'overflowX': 'auto'},
-                            style_header={'backgroundColor': '#f1f1f1',
-                                          'fontWeight': 'bold',
-                                          'color': '#333333'},
-                            style_cell={'textAlign': 'center'},
-                            style_data_conditional=[
-                                {'if': {'row_index': 'odd'},
-                                 'backgroundColor': '#f9f9f9'}
-                            ]
-                        )
-                    ],
-                    width=6,
-                    style={'marginBottom': '20px', 'paddingLeft': '15px'}
-                )
+                
             ],
             style={'marginBottom': '20px'}
         ),
@@ -407,7 +352,7 @@ app.layout = dbc.Container(
 # Callback for updating candidate-based bar graph
 @app.callback(
     Output('cand-committee-graph', 'figure'),
-    [Input('year-dropdown', 'value'), Input('candidate-dropdown-bar', 'value')]
+    [Input('global-year-dropdown', 'value'), Input('global-candidate-dropdown', 'value')]
 )
 def update_graph(selected_year, selected_candidates):
     # Filter for selected year if specified
@@ -458,7 +403,7 @@ def update_graph(selected_year, selected_candidates):
 # Callback for timeseries chart
 @app.callback(
     Output('timeseries-graph', 'figure'),
-    [Input('year-dropdown-ts', 'value'), Input('candidate-dropdown', 'value')]
+    [Input('global-year-dropdown', 'value'), Input('global-candidate-dropdown', 'value')]
 )
 def update_timeseries(selected_year, selected_candidates):
     filtered_df = df[df['strVal'] == 'Monetary Political Contributions']
@@ -497,7 +442,7 @@ def update_timeseries(selected_year, selected_candidates):
 # Callback for expenditure timeseries graph
 @app.callback(
     Output('expenditure-timeseries-graph', 'figure'),
-    [Input('year-dropdown-expenditure-ts', 'value'), Input('candidate-dropdown-expenditure', 'value')]
+    [Input('global-year-dropdown', 'value'), Input('global-candidate-dropdown', 'value')]
 )
 def updated_expenditures_timeseries(selected_year, selected_candidates):
     filtered_df = df[df['Contact Type:'] == 'Expenditure']
