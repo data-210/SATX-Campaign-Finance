@@ -27,8 +27,8 @@ def extract_zip_code(address):
     return None
 
 # Paths to the single CSV and Excel files
-csv_file_path = '/Users/jackturek/Desktop/Data Data Data/Personal Projects/Public Policy Stuff/Voting, Political Science & Elections/SATX Politics/Campaign Finance/Data/cf_20241031.csv'
-excel_file_path = '/Users/jackturek/Desktop/Data Data Data/Personal Projects/Public Policy Stuff/Voting, Political Science & Elections/SATX Politics/Campaign Finance/Data/cf_20241031.xlsx'
+csv_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/campaignfinance_01202024.csv'
+excel_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/campaignfinance_01202024.xlsx'
 
 # Load the CSV file into a DataFrame
 df = pd.read_csv(csv_file_path)
@@ -57,4 +57,4 @@ for i in range(len(clean_df)):
 clean_df['ReportLink'] = clean_hyperlinks
 
 # Save the final cleaned DataFrame with hyperlinks and zip codes as a new CSV
-clean_df.to_csv('updated_cf_20241031_test.csv', index=False)
+clean_df.to_csv('campaignfinancedata01202025.csv', index=False)
