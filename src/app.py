@@ -8,15 +8,15 @@ import pandas as pd
 REPO = Path(__file__).resolve().parents[1]
 DATA = Path.joinpath(REPO, 'data')
 
-df = pd.read_csv(Path.joinpath(DATA, 'campaign_finance20241031.csv'))
+df = pd.read_csv(Path.joinpath(DATA, 'campaign_finance.csv'))
 
 # Convert TransDate: to date time
 df['TransDate:'] = pd.to_datetime(df['TransDate:'], errors='coerce')
 # Add last transaction date and date last downloaded
 last_transaction_date = df['TransDate:'].max().strftime('%m/%d/%Y')
-data_last_download = '10/31/2024'
+data_last_download = "January 20, 2025"
 
-app = Dash(__name__)
+app = Dash(__name__, serve_locally=True)
 server = app.server
 
 logging.debug("Starting server...")
