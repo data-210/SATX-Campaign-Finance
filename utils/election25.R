@@ -53,3 +53,6 @@ filtered_data <- filtered_data %>%
 
 # Change strVal col name
 filtered_data <- filtered_data %>% rename(CF_Type = strVal)
+
+# Write to csv
+write.csv(filtered_data, "top8_mayoral.csv", row.names = FALSE)
