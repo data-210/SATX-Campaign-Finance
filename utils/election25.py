@@ -27,6 +27,39 @@ def extract_zip_code(address):
 # Path to the Excel file
 excel_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/election25data.xls'
 
+# Try to determine file extension
+file_extension = excel_file_path.split('.')[-1].lower()
+
+# Select the appropriate engine based on the file extension
+if file_extension == 'xls':
+    engine = 'xlrd'
+    print("Using xlrd engine for .xls file")
+elif file_extension == 'xlsx':
+    engine = 'openpyxl'
+    print("Using openpyxl engine for .xlsx file")
+else:
+    # Try both engines
+    print(f"Unknown extension: {file_extension}. Trying xlrd first...")
+    engine = 'xlrd'
+
+try:
+    # Load the Excel file into a DataFrame with specified engine
+    df = pd.read_excel(excel_file_path, engine=engine)
+except Exception as e:
+    if engine == 'xlrd':
+        print(f"Failed with xlrd: {e}. Trying openpyxl...")
+        engine = 'openpyxl'
+        try:
+            df = pd.read_excel(excel_file_path, engine=engine)
+        except Exception as e2:
+            print(f"Failed with openpyxl as well: {e2}")
+            raise
+    else:
+        print(f"Failed with {engine}: {e}")
+        raise
+
+print(f"Successfully loaded Excel file using {engine} engine")
+
 # Load the Excel file into a DataFrame
 df = pd.read_excel(excel_file_path)
 
