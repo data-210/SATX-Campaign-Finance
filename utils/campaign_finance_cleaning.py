@@ -27,8 +27,8 @@ def extract_zip_code(address):
     return None
 
 # Paths to the single CSV and Excel files
-csv_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/campaignfinance_01202024.csv'
-excel_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/campaignfinance_01202024.xlsx'
+csv_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/election25.csv'
+excel_file_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/election25.xlsx'
 
 # Load the CSV file into a DataFrame
 df = pd.read_csv(csv_file_path)
