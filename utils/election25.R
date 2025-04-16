@@ -53,7 +53,7 @@ tryCatch({
     })
   })
 })
-
+View(df)
 # Print basic information about the dataframe
 cat("Dataframe dimensions:", dim(df)[1], "rows by", dim(df)[2], "columns\n")
 cat("Column names:", paste(colnames(df), collapse = ", "), "\n")
@@ -68,4 +68,21 @@ if ("Name:" %in% colnames(df)) {
   # Try to find similar column names
   similar_cols <- grep("name", tolower(colnames(df)), value = TRUE)
   if (length(similar_cols) > 0) {
-    cat("Found similar columns that might contain names:", pa
+    cat("Found similar columns that might contain names:", paste(similar_cols, collapse = ", "), "\n")
+  }
+}
+
+# Clean the data by retaining only rows where 'Report Id:' is not NA (if column exists)
+if ("Report Id:" %in% colnames(df)) {
+  clean_df <- df %>% 
+    filter(!is.na(`Report Id:`))
+  cat("Filtered data based on 'Report Id:' column. Rows remaining:", nrow(clean_df), "\n")
+} else {
+  cat("Warning: 'Report Id:' column not found. Using all rows.\n")
+  clean_df <- df
+}
+
+# Save the final cleaned DataFrame as a new CSV
+output_path <- "campaignfinancedata01202025.csv"
+write_csv(clean_df, output_path)
+cat("Processing complete. File saved as", output_path, "\n")
