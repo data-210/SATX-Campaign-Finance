@@ -56,3 +56,5 @@ filtered_data <- filtered_data %>% rename(CF_Type = strVal)
 
 # Write to csv
 write.csv(filtered_data, "top8_mayoral.csv", row.names = FALSE)
+
+unique(filtered_data$CF_Type)
