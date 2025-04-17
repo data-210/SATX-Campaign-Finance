@@ -1,7 +1,8 @@
 import pdfplumber
 import re
 import pandas as pd
-from ace_tools import display_dataframe_to_user
+import os
+#from ace_tools import display_dataframe_to_user
 
 pdf_path = '/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/Sorensen30dayfiling.pdf'
 contrib_records = []
@@ -64,5 +65,5 @@ df_exp = pd.DataFrame(exp_records)
 # Merge into one DataFrame
 df_merged = pd.concat([df_contrib, df_exp], ignore_index=True)
 
-# Display
-display_dataframe_to_user("Combined Schedule A1 and F1 Records", df_merged)
+# Write to csv
+df_merged.to_csv('/Users/jackturek/Documents/Repos/SATX-Campaign-Finance/data/Sorensen_schedule.csv', index=False)
