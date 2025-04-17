@@ -1,0 +1,13 @@
+name: top8satxmayor
+title: top8satxmayor
+username: jturek
+account: jturek
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14544131
+bundleId: 10128868
+url: https://jturek.shinyapps.io/top8satxmayor/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: app.py
